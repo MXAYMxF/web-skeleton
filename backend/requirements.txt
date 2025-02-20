@@ -1,43 +1,39 @@
 # Core
-fastapi==0.104.1
-uvicorn==0.24.0
-python-multipart==0.0.6
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-pydantic==2.5.0
-pydantic-settings==2.1.0
-email-validator==2.1.0.post1
+fastapi>=0.109.0
+uvicorn>=0.27.0
+python-multipart>=0.0.6
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+pydantic>=2.6.0
+pydantic-settings>=2.1.0
+email-validator>=2.1.0
 
 # Database
-sqlalchemy==2.0.23
-alembic==1.12.1
-psycopg2-binary==2.9.9
-redis==5.0.1
-asyncpg==0.29.0
-
-# GraphQL
-strawberry-graphql==0.219.1
-strawberry-graphql-fastapi==0.16.0
+sqlalchemy>=2.0.25
+alembic>=1.13.1
+psycopg2-binary>=2.9.9
+redis>=5.0.1
+asyncpg>=0.29.0
 
 # WebSockets
-websockets==12.0
+websockets>=12.0
 
 # Testing
-pytest==7.4.3
-pytest-asyncio==0.21.1
-pytest-cov==4.1.0
-httpx==0.25.1
-faker==20.1.0
+pytest>=8.0.0
+pytest-asyncio>=0.23.5
+pytest-cov>=4.1.0
+httpx>=0.26.0
+Faker>=22.6.0
 
 # Development
-black==23.11.0
-isort==5.12.0
-flake8==6.1.0
-mypy==1.7.0
+black>=24.1.0
+isort>=5.13.2
+flake8>=7.0.0
+mypy>=1.8.0
 
 # Documentation
-mkdocs==1.5.3
-mkdocs-material==9.4.8
+mkdocs>=1.5.3
+mkdocs-material>=9.5.3
 
 # Web3
-web3==6.11.1
+web3>=6.14.0
