@@ -2,7 +2,8 @@ import axios from 'axios';
 import { useAuthStore } from '@/stores/useAuthStore';
 
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api/v1',
+  baseURL: '/api/v1',
+  withCredentials: true,
 });
 
 // Add auth token to requests if available
@@ -18,13 +19,22 @@ api.interceptors.request.use((config) => {
 export const auth = {
   login: async (email: string, password: string) => {
     const formData = new URLSearchParams();
-    formData.append('username', email);
+    formData.append('username', email); // OAuth2 expects 'username' not 'email'
     formData.append('password', password);
     
-    const response = await api.post('/auth/login', formData, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    const response = await fetch('/api/v1/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData,
     });
-    return response.data;
+
+    if (!response.ok) {
+      throw new Error(`Login failed: ${response.statusText}`);
+    }
+
+    return response.json();
   },
   
   register: async (data: { email: string; password: string; full_name?: string }) => {
