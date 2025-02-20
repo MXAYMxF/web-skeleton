@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
+from app.api.v1.api import api_router
 from app.core.config import settings
 from app.db.session import get_db
 
@@ -15,6 +16,9 @@ app = FastAPI(
     version=settings.VERSION,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
 )
+
+# Include API router
+app.include_router(api_router, prefix=settings.API_V1_STR)
 
 # Set up CORS middleware
 app.add_middleware(

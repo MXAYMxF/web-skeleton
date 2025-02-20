@@ -1,5 +1,9 @@
 import os
+import sys
 from logging.config import fileConfig
+
+# Add the backend directory to the Python path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
@@ -23,11 +27,11 @@ config.set_main_option("sqlalchemy.url", settings.SQLALCHEMY_DATABASE_URI)
 # Add your model's MetaData object here for 'autogenerate' support
 target_metadata = Base.metadata
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-target_metadata = None
+# Import all models here for Alembic to detect
+from app.models.user import User  # noqa
+
+# Set metadata for migrations
+target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
