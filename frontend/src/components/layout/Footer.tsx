@@ -1,5 +1,7 @@
 'use client';
 
+import { notoEmoji } from '@/app/fonts';
+
 export default function Footer() {
   return (
     <footer className="mt-auto py-4 bg-gray-50">
@@ -7,7 +9,11 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row justify-between items-center text-sm text-gray-600">
           <div className="flex items-center space-x-1">
             <span>Made by Coffee Man Labs</span>
-            <span role="img" aria-label="coffee" className="text-lg">
+            <span 
+              role="img" 
+              aria-label="coffee" 
+              className={`text-lg ${notoEmoji.className}`}
+            >
               ☕️
             </span>
           </div>
