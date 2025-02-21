@@ -1,6 +1,6 @@
 'use client';
 
-import { notoEmoji } from '@/app/fonts';
+import '@/app/fonts.css';
 
 export default function Footer() {
   return (
@@ -12,9 +12,10 @@ export default function Footer() {
             <span 
               role="img" 
               aria-label="coffee" 
-              className={`text-lg ${notoEmoji.className}`}
+              className="text-lg"
+              style={{ fontFamily: '"Noto Emoji", sans-serif' }}
             >
-              ☕️
+              ☕
             </span>
           </div>
           <div className="flex items-center space-x-4 mt-2 sm:mt-0">
