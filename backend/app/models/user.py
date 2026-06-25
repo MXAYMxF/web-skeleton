@@ -1,8 +1,7 @@
 from datetime import datetime
 from typing import Optional, Dict, Any
-from sqlalchemy import String, Boolean, DateTime, Integer
+from sqlalchemy import String, Boolean, DateTime, Integer, JSON
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.dialects.postgresql import JSONB
 from app.db.base_class import Base
 
 class User(Base):
@@ -12,7 +11,7 @@ class User(Base):
     full_name: Mapped[Optional[str]] = mapped_column(String, index=True, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False)
-    preferences: Mapped[Dict[str, Any]] = mapped_column(JSONB, default=dict)
+    preferences: Mapped[Dict[str, Any]] = mapped_column(JSON, default=dict)
     web3_address: Mapped[Optional[str]] = mapped_column(String, unique=True, index=True, nullable=True)
     
     # Audit fields
