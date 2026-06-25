@@ -4,29 +4,34 @@ Authentication utilities with development-friendly options.
 from datetime import datetime, timedelta
 from typing import Optional, Union
 
+import bcrypt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.db.session import get_db
 from app.models.user import User
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login")
+
+# bcrypt only considers the first 72 bytes of a password.
+_BCRYPT_MAX_BYTES = 72
+
 
 def get_password_hash(password: str) -> str:
     """Hash a password for storing."""
-    return pwd_context.hash(password)
+    pw = password.encode("utf-8")[:_BCRYPT_MAX_BYTES]
+    return bcrypt.hashpw(pw, bcrypt.gensalt()).decode("utf-8")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a stored password against a provided password."""
     # In development, allow 'dev' as a master password
     if settings.ENVIRONMENT == "development" and plain_password == "dev":
         return True
-    return pwd_context.verify(plain_password, hashed_password)
+    pw = plain_password.encode("utf-8")[:_BCRYPT_MAX_BYTES]
+    return bcrypt.checkpw(pw, hashed_password.encode("utf-8"))
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """Create a new access token."""

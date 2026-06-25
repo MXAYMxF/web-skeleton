@@ -10,7 +10,7 @@ setup(
         "alembic",
         "psycopg2-binary",
         "python-jose[cryptography]",
-        "passlib[bcrypt]",
+        "bcrypt",
         "python-multipart",
         "pydantic-settings",
         "pydantic[email]",
