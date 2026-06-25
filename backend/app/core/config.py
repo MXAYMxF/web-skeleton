@@ -25,10 +25,9 @@ Environment Variables:
     See .env.example for all available options.
 """
 
-import secrets
-from typing import Any, Dict, List, Optional, Union
-from pydantic_settings import BaseSettings
-from pydantic import AnyHttpUrl, EmailStr, validator, SecretStr
+from typing import List, Optional, Union
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import AnyHttpUrl, EmailStr, field_validator, model_validator
 
 class Settings(BaseSettings):
     """Application settings class that handles all configuration.
@@ -78,22 +77,24 @@ class Settings(BaseSettings):
     # Web3
     WEB3_PROVIDER_URI: str = "http://localhost:8545"
     
-    @validator("BACKEND_CORS_ORIGINS", pre=True)
+    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
+    @classmethod
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
         if isinstance(v, str) and not v.startswith("["):
             return [i.strip() for i in v.split(",")]
-        elif isinstance(v, (list, str)):
+        if isinstance(v, (list, str)):
             return v
         raise ValueError(v)
-    
-    @validator("SQLALCHEMY_DATABASE_URI", pre=True)
-    def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
-        if isinstance(v, str):
-            return v
-        return f"postgresql://{values.get('POSTGRES_USER')}:{values.get('POSTGRES_PASSWORD')}@{values.get('POSTGRES_SERVER')}:{values.get('POSTGRES_PORT')}/{values.get('POSTGRES_DB')}"
 
-    class Config:
-        case_sensitive = True
-        env_file = ".env"
+    @model_validator(mode="after")
+    def assemble_db_connection(self) -> "Settings":
+        if self.SQLALCHEMY_DATABASE_URI is None:
+            self.SQLALCHEMY_DATABASE_URI = (
+                f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
+                f"@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+            )
+        return self
+
+    model_config = SettingsConfigDict(case_sensitive=True, env_file=".env")
 
 settings = Settings()

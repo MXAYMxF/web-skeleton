@@ -3,7 +3,7 @@ User-related Pydantic schemas.
 """
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 class UserBase(BaseModel):
     """Shared properties."""
@@ -23,9 +23,8 @@ class UserInDBBase(UserBase):
     """Properties shared by models stored in DB."""
     id: int
     is_superuser: bool = False
-    
-    class Config:
-        from_attributes = True
+
+    model_config = ConfigDict(from_attributes=True)
 
 class UserResponse(UserInDBBase):
     """Additional properties to return via API."""
