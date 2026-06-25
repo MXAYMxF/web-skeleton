@@ -1,13 +1,14 @@
 """
 Authentication endpoints with development-friendly features.
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
+from app import crud
 from app.core import auth
 from app.core.config import settings
 from app.db.session import get_db
@@ -17,6 +18,20 @@ from app.schemas.user import UserCreate, UserResponse
 
 router = APIRouter()
 
+
+def _token_response(user: User) -> dict:
+    """Build a Token payload (access token + user) for a given user."""
+    access_token = auth.create_access_token(
+        data={"sub": user.email},
+        expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+    )
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": UserResponse.model_validate(user),
+    }
+
+
 @router.post("/login", response_model=Token)
 async def login(
     db: Session = Depends(get_db),
@@ -24,50 +39,40 @@ async def login(
 ) -> Any:
     """
     OAuth2 compatible token login, get an access token for future requests.
-    
+
     In development:
     - Use email: dev@example.com and password: dev for quick access
-    - Or use any email with password 'dev'
+    - Or use any email with password 'dev' (auto-provisions the account)
     """
-    # In development, allow 'dev' password for any email
-    if settings.ENVIRONMENT == "development" and form_data.password == "dev":
-        user = db.query(User).filter(User.email == form_data.username).first()
-        if not user:
-            # Create a new user with the provided email
-            user = User(
-                email=form_data.username,
-                hashed_password=auth.get_password_hash("dev"),
-                full_name=f"Dev User ({form_data.username})",
-                is_active=True
+    user = crud.user.authenticate(
+        db, email=form_data.username, password=form_data.password
+    )
+    if user is None:
+        # In development, the 'dev' master password auto-provisions the account.
+        if settings.ENVIRONMENT == "development" and form_data.password == "dev":
+            user = crud.user.get_by_email(db, email=form_data.username) or crud.user.create(
+                db,
+                obj_in=UserCreate(
+                    email=form_data.username,
+                    password="dev",
+                    full_name=f"Dev User ({form_data.username})",
+                ),
             )
-            db.add(user)
-            db.commit()
-            db.refresh(user)
-    else:
-        # Normal authentication flow
-        user = db.query(User).filter(User.email == form_data.username).first()
-        if not user or not auth.verify_password(form_data.password, user.hashed_password):
+        else:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect email or password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-    
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = auth.create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
-    )
-    
+
     # Update login statistics
-    user.last_login = datetime.utcnow()
+    user.last_login = datetime.now(timezone.utc)
     user.login_count += 1
     db.commit()
-    
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user": UserResponse.model_validate(user)
-    }
+    db.refresh(user)
+
+    return _token_response(user)
+
 
 @router.post("/register", response_model=Token)
 async def register(
@@ -77,60 +82,38 @@ async def register(
 ) -> Any:
     """
     Register a new user.
-    
+
     In development:
     - Automatically activates users
     - Allows registration even if email exists (updates the user instead)
     """
-    user = db.query(User).filter(User.email == user_in.email).first()
-    
-    if settings.ENVIRONMENT == "development":
-        if user:
-            # Update existing user in development
-            user.full_name = user_in.full_name
-            user.hashed_password = auth.get_password_hash(user_in.password)
-            user.is_active = True
-            db.commit()
-            db.refresh(user)
-        else:
-            # Create new user
-            user = User(
-                email=user_in.email,
-                hashed_password=auth.get_password_hash(user_in.password),
-                full_name=user_in.full_name,
-                is_active=True  # Auto-activate in development
-            )
-            db.add(user)
-            db.commit()
-            db.refresh(user)
-    else:
-        # Production registration flow
-        if user:
-            raise HTTPException(
-                status_code=400,
-                detail="The user with this email already exists in the system",
-            )
-        user = User(
-            email=user_in.email,
-            hashed_password=auth.get_password_hash(user_in.password),
-            full_name=user_in.full_name,
-            is_active=False  # Require activation in production
+    existing = crud.user.get_by_email(db, email=user_in.email)
+
+    if existing and settings.ENVIRONMENT != "development":
+        raise HTTPException(
+            status_code=400,
+            detail="The user with this email already exists in the system",
         )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-    
-    # Create access token
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = auth.create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
-    )
-    
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user": UserResponse.model_validate(user)
-    }
+
+    if existing:
+        # Development convenience: update the existing account in place.
+        user = crud.user.update(
+            db,
+            db_obj=existing,
+            obj_in={
+                "full_name": user_in.full_name,
+                "hashed_password": auth.get_password_hash(user_in.password),
+                "is_active": True,
+            },
+        )
+    else:
+        user = crud.user.create(db, obj_in=user_in)
+        if settings.ENVIRONMENT != "development":
+            # Production: require activation before the account is usable.
+            user = crud.user.update(db, db_obj=user, obj_in={"is_active": False})
+
+    return _token_response(user)
+
 
 @router.post("/test-token", response_model=UserResponse)
 def test_token(current_user: User = Depends(auth.get_current_user)) -> Any:
