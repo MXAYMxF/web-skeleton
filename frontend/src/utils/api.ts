@@ -21,20 +21,11 @@ export const auth = {
     const formData = new URLSearchParams();
     formData.append('username', email); // OAuth2 expects 'username' not 'email'
     formData.append('password', password);
-    
-    const response = await fetch('/api/v1/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: formData,
+
+    const response = await api.post('/auth/login', formData, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     });
-
-    if (!response.ok) {
-      throw new Error(`Login failed: ${response.statusText}`);
-    }
-
-    return response.json();
+    return response.data;
   },
   
   register: async (data: { email: string; password: string; full_name?: string }) => {
