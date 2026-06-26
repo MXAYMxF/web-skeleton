@@ -24,13 +24,9 @@ if config.config_file_name is not None:
 # Set the database URL in the alembic.ini file
 config.set_main_option("sqlalchemy.url", settings.SQLALCHEMY_DATABASE_URI)
 
-# Add your model's MetaData object here for 'autogenerate' support
-target_metadata = Base.metadata
+# Import all models so they register on Base.metadata for autogenerate.
+from app.db.base import *  # noqa: F401,F403
 
-# Import all models here for Alembic to detect
-from app.models.user import User  # noqa
-
-# Set metadata for migrations
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
