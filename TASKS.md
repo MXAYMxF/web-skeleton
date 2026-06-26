@@ -30,6 +30,12 @@ Work top-to-bottom; each task is one small commit so power loss costs at most on
 - [x] **T9** Align `setup.py`/`requirements.txt`; refresh README/dev docs to match reality.
 - [x] **T10** Final pass: run backend tests + frontend lint; tidy CLAUDE.md if anything drifted.
 
+## Phase 5 — Features / pages (backlog)
+- [ ] **T11** Sign-up button: add a register CTA (currently only "Sign in" exists in the
+      navbar/LoginModal). Wire it to `auth.register` and surface a sign-up form/modal.
+- [ ] **T12** Add static pages: Privacy Policy, Terms & Conditions, and Support — with
+      footer links to each. (Next.js routes under `src/app/`, linked from `Footer.tsx`.)
+
 ## Status log
 - 2026-06-25: Recovered from power-cut session. Cleared 57 phantom file-mode diffs
   (`core.fileMode=false`). Wrote CLAUDE.md + this plan. Nothing was lost.
