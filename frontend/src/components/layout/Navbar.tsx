@@ -8,7 +8,13 @@ import Link from 'next/link';
 
 export default function Navbar() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
   const { user, isAuthenticated, clearAuth } = useAuthStore();
+
+  const openAuthModal = (mode: 'login' | 'register') => {
+    setAuthModalMode(mode);
+    setIsLoginModalOpen(true);
+  };
 
   return (
     <nav className="bg-white shadow">
@@ -50,13 +56,21 @@ export default function Navbar() {
                 </button>
               </div>
             ) : (
-              <button
-                onClick={() => setIsLoginModalOpen(true)}
-                className="flex items-center space-x-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              >
-                <UserCircleIcon className="h-5 w-5" />
-                <span>Sign in</span>
-              </button>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => openAuthModal('login')}
+                  className="flex items-center space-x-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                >
+                  <UserCircleIcon className="h-5 w-5" />
+                  <span>Sign in</span>
+                </button>
+                <button
+                  onClick={() => openAuthModal('register')}
+                  className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-indigo-600 shadow-sm ring-1 ring-inset ring-indigo-200 hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                >
+                  Sign up
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -65,6 +79,7 @@ export default function Navbar() {
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
+        initialMode={authModalMode}
       />
     </nav>
   );
