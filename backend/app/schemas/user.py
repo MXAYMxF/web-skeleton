@@ -15,9 +15,13 @@ class UserCreate(UserBase):
     """Properties to receive via API on creation."""
     password: str
 
-class UserUpdate(UserBase):
-    """Properties to receive via API on update."""
+class UserUpdate(BaseModel):
+    """Properties to receive via API on update (all optional for partial edits)."""
+    email: Optional[EmailStr] = None
+    full_name: Optional[str] = None
     password: Optional[str] = None
+    is_active: Optional[bool] = None
+    preferences: Optional[dict] = None
 
 class UserInDBBase(UserBase):
     """Properties shared by models stored in DB."""
@@ -30,3 +34,4 @@ class UserResponse(UserInDBBase):
     """Additional properties to return via API."""
     last_login: Optional[datetime] = None
     login_count: Optional[int] = None
+    preferences: Optional[dict] = None
