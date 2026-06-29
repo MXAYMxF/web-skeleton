@@ -39,12 +39,12 @@ Work top-to-bottom; each task is one small commit so power loss costs at most on
 ## Phase 6 — User self-service (account management)
 The `User` model already has the fields (`full_name`, `preferences`, audit columns); no
 endpoints expose them yet. Build the "me" surface first since admin reuses the same CRUD.
-- [ ] **T13** Add `crud.user` helpers + `UserUpdate` path for self-edit: `update`
+- [x] **T13** Add `crud.user` helpers + `UserUpdate` path for self-edit: `update`
       (re-hash password when present), and expose them. Keep all DB access in `crud.user`.
-- [ ] **T14** `users` router (`api/v1/users.py`, mounted in `api.py`): `GET /users/me`
+- [x] **T14** `users` router (`api/v1/users.py`, mounted in `api.py`): `GET /users/me`
       and `PATCH /users/me` (update `full_name`, `email`, `password`, `preferences`).
       `email` change must guard the unique constraint. Add to the `crud.user`-backed flow.
-- [ ] **T15** Frontend `/settings` page (`src/app/settings/`): profile form (name/email),
+- [x] **T15** Frontend `/settings` page (`src/app/settings/`): profile form (name/email),
       change-password form, and a `preferences` section (e.g. theme) persisted via
       `PATCH /users/me`. Link from the navbar user menu. All calls through `utils/api.ts`.
 
@@ -98,6 +98,10 @@ endpoints expose them yet. Build the "me" surface first since admin reuses the s
 - 2026-06-29: Completed T11 (sign-up CTA + dual-mode auth modal wired to `auth.register`)
   and T12 (Privacy/Terms/Support pages + footer links), run in parallel. Frontend `tsc`
   + ESLint clean. Next up: T13–T15 (account self-service).
+- 2026-06-29: Completed T13–T15 (account self-service): partial `UserUpdate` +
+  `crud.user.update` password re-hash, `GET`/`PATCH /users/me` with email-unique
+  guard, and a frontend `/settings` page. Backend suite 10 passed; frontend `tsc`
+  + ESLint clean. Next up: T16–T19 (superuser/admin).
 
 ## Conventions for the new work
 - Keep all DB access in `crud` objects (`crud.user`, `crud.app_setting`); no inline
