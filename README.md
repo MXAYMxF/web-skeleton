@@ -1,265 +1,161 @@
-# Web Application Skeleton
+# web-skeleton
 
-A modern, scalable, and well-documented web application skeleton designed for rapid development and easy maintenance. This skeleton provides a solid foundation for building web applications with comprehensive documentation and pre-configured development environment.
+A small, correctly-wired full-stack starter — **FastAPI + Next.js, with auth already
+working** — meant to be copied into a real project so you start at "edit the feature,"
+not "wire the plumbing." It favors clarity and correct wiring over feature count.
 
-## Key Features
-- REST APIs with OpenAPI documentation
-- GraphQL APIs
-- WebSocket support
-- Authentication & Authorization
-- Database integration
-- Test-driven development
-- Web3 integration readiness
-- Mobile-first API design
+> **Reading this as an AI coding agent?** Everything under **Available now** is wired and
+> runnable today. Everything under **Roadmap / future vision** is *planned and not yet
+> implemented* — do not treat it as existing code. See `CLAUDE.md` for conventions and
+> `TASKS.md` for the detailed, phased roadmap.
 
-## Features
+## Available now
 
-- 🔐 Authentication & Authorization
-  - JWT-based authentication
-  - Role-based access control
-  - OAuth2 support
-  - Social login ready
+These features exist in the codebase and run today.
 
-- 📱 API Support
-  - REST APIs with OpenAPI/Swagger documentation
-  - GraphQL API
-  - WebSocket support
-  - Mobile-friendly endpoints
-  - API versioning
+### Backend (FastAPI)
 
-- 💾 Database
-  - PostgreSQL for persistent storage
-  - Redis for caching
-  - Database migrations
-  - Audit logging
+- **JWT authentication** — `POST /api/v1/auth/login`, `/auth/register`, `/auth/test-token`.
+- **Dev backdoor (strictly dev-gated)** — in `ENVIRONMENT=development` *only*, the password
+  and bearer token `"dev"` are accepted and auto-provision a user. Never reachable in
+  staging/production.
+- **User self-service** — `GET` / `PATCH /api/v1/users/me` to update `full_name`, `email`,
+  `password`, and `preferences`, with an email-uniqueness guard.
+- **Superuser support** — a `get_current_active_superuser` gating dependency, plus a
+  first-superuser bootstrap: set `FIRST_SUPERUSER` / `FIRST_SUPERUSER_PASSWORD`, then run the
+  idempotent `python -m app.initial_data` seed script (backed by
+  `crud.user.get_or_create_superuser`).
+- **Clean data layer** — all DB access goes through `crud` objects (`CRUDBase` + `crud.user`),
+  not inline queries in endpoints. bcrypt password hashing. Health/config endpoints.
+- **Tests with zero infra** — `pytest` runs on SQLite (no Postgres or other services needed);
+  the suite is currently green (15 passing).
 
-- 🧪 Testing
-  - Unit tests
-  - Integration tests
-  - E2E tests
-  - API tests
-  - Performance tests
+### Frontend (Next.js App Router)
 
-- 🔧 Development Tools
-  - Docker development environment
-  - Hot reload
-  - Debug configurations
-  - Code formatting and linting
-  - Git hooks
+- **Persisted auth store** — a Zustand store (`stores/useAuthStore`) persisted across reloads.
+- **One axios instance** — a single `utils/api.ts` client with an auth interceptor; a Next
+  rewrite proxies `/api/*` to the backend so all calls share the same base URL.
+- **Pages** — home, dashboard, settings (profile / password / theme preference), privacy,
+  terms, and support. A dual-mode Login/Register modal, a navbar with **Sign in / Sign up**,
+  and a footer.
 
-- 📚 Documentation
-  - API documentation (OpenAPI/Swagger)
-  - WebSocket documentation (AsyncAPI)
-  - Development guides
-  - Deployment guides
+## Tech stack
 
-## Documentation
+| Layer    | Tools |
+| -------- | ----- |
+| Backend  | FastAPI, SQLAlchemy 2.0 (typed `Mapped[]` models), Alembic, Pydantic v2 |
+| Database | PostgreSQL in production, SQLite for tests |
+| Frontend | Next.js (App Router), TypeScript, Zustand (persisted), axios |
 
-This project includes comprehensive documentation:
-
-- 📚 **Development Guide**: Detailed setup and development instructions in `docs/guides/development.md`
-- 🔧 **Configuration Guide**: Environment variables and system configuration in `.env.example`
-- 📐 **Architecture Documentation**: System design and decisions in `docs/architecture/`
-- 🧪 **Testing Guide**: Testing strategies and examples in `docs/testing/`
-- 📦 **Deployment Guide**: Production deployment instructions in `docs/deployment/`
-
-## Quick Start
-
-1. **Clone the Repository**
-   ```bash
-   git clone <repository-url>
-   cd web-skeleton
-   ```
-
-2. **Configure Environment**
-   ```bash
-   # Copy environment template
-   cp .env.example .env
-   
-   # Edit environment variables
-   nano .env
-   ```
-
-3. **Start Development Environment**
-   ```bash
-   # Start dependencies
-   docker-compose up -d
-   
-   # Install backend dependencies
-   cd backend
-   python -m venv venv
-   source venv/bin/activate
-   pip install -r requirements.txt
-   
-   # Run migrations
-   alembic upgrade head
-   
-   # Start backend server
-   uvicorn app.main:app --reload
-   ```
-
-4. **Access the Application**
-   - Backend API: http://localhost:8000
-   - API Documentation: http://localhost:8000/docs
-   - GraphQL Playground: http://localhost:8000/graphql
-
-## Project Structure
+## Project layout
 
 ```
-web-skeleton/
-├── backend/                 # Python FastAPI backend
-│   ├── app/
-│   │   ├── api/            # API routes
-│   │   │   ├── v1/         # API version 1
-│   │   │   └── ws/         # WebSocket endpoints
-│   │   ├── core/           # Core functionality
-│   │   ├── crud/           # CRUD operations
-│   │   ├── db/             # Database
-│   │   ├── models/         # SQLAlchemy models
-│   │   ├── schemas/        # Pydantic schemas
-│   │   └── tests/          # Backend tests
-│   ├── migrations/         # Alembic migrations
-│   └── scripts/            # Utility scripts
-│
-├── frontend/               # Next.js frontend
-│   ├── src/
-│   │   ├── components/     # React components
-│   │   ├── hooks/          # Custom React hooks
-│   │   ├── pages/          # Next.js pages
-│   │   ├── services/       # API clients
-│   │   ├── styles/         # CSS/SCSS files
-│   │   └── tests/          # Frontend tests
-│   └── public/             # Static files
-│
-├── docs/                   # Documentation
-│   ├── api/               # API documentation
-│   ├── architecture/      # Architecture decisions
-│   └── guides/            # Development guides
-│
-└── docker/                # Docker configurations
-
-## Configuration
-
-The application uses a hierarchical configuration system:
-
-1. **Environment Variables**
-   - `.env.example` provides a template for required variables
-   - Variables are documented with descriptions and default values
-   - Sensitive values are never committed to version control
-
-2. **Configuration Modules**
-   - `backend/app/core/config.py` handles backend configuration
-   - All settings are validated using Pydantic
-   - Type hints and documentation for all settings
-
-3. **Docker Configuration**
-   - `docker-compose.yml` for development environment
-   - Separate production Docker configurations
-   - Environment-specific overrides
-
-## Development Practices
-
-1. **Code Style**
-   - Python: PEP 8 guidelines, type hints, docstrings
-   - TypeScript: ESLint, Prettier configuration
-   - Pre-commit hooks for formatting
-
-2. **Testing**
-   - Unit tests for all components
-   - Integration tests for APIs
-   - End-to-end tests for critical paths
-   - Coverage reports and thresholds
-
-3. **Documentation**
-   - Inline comments for complex logic
-   - Function and class docstrings
-   - API documentation with examples
-   - Architecture decision records
-
-## Contributing
-
-Please read our [Contributing Guide](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+backend/
+  app/
+    api/v1/      # routers (auth.py, users.py) + api.py aggregator
+    core/        # config.py (settings), auth.py (jwt/password/deps)
+    crud/        # CRUDBase + per-model crud objects (crud.user, ...)
+    db/          # base_class.py (DeclarativeBase), session.py, base.py (model registry)
+    models/      # SQLAlchemy models
+    schemas/     # Pydantic schemas
+    tests/       # pytest (conftest.py uses SQLite + dependency override)
+    initial_data.py  # idempotent first-superuser seed script
+  alembic/       # migrations
+frontend/
+  src/
+    app/         # Next.js App Router pages (home, dashboard, settings, privacy, terms, support)
+    components/  # auth/, layout/
+    stores/      # useAuthStore (zustand + persist)
+    utils/       # api.ts (single axios instance)
 ```
 
-## Getting Started
+## Getting started
 
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   # Backend
-   cd backend
-   python -m venv venv
-   source venv/bin/activate
-   pip install -r requirements.txt
+No Docker required. The backend and frontend each run with a handful of native commands.
 
-   # Frontend
-   cd ../frontend
-   npm install
-   ```
+### Backend (from `backend/`)
 
-3. Set up the database:
-   ```bash
-   docker-compose up -d db redis
-   cd backend
-   alembic upgrade head
-   ```
-
-4. Create the first superuser (idempotent):
-   ```bash
-   # Set credentials via env or backend/.env. FIRST_SUPERUSER_PASSWORD is
-   # required; the script refuses to run without it.
-   export FIRST_SUPERUSER=admin@example.com
-   export FIRST_SUPERUSER_PASSWORD=change-me
-   cd backend
-   python -m app.initial_data
-   ```
-   Run it after `alembic upgrade head`. Safe to run repeatedly: it creates the
-   superuser if missing, otherwise just ensures the account is an active
-   superuser (existing passwords are left untouched).
-
-5. Start the development servers:
-   ```bash
-   # Backend
-   cd backend
-   uvicorn app.main:app --reload
-
-   # Frontend
-   cd frontend
-   npm run dev
-   ```
-
-6. Access the applications:
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8000
-   - API Documentation: http://localhost:8000/docs
-   - GraphQL Playground: http://localhost:8000/graphql
-
-## Development
-
-### Testing
 ```bash
-# Backend tests
-cd backend
+pip install -e .                # editable install (needs __init__.py in every package)
+pip install -r requirements.txt
+alembic upgrade head            # apply migrations
+uvicorn app.main:app --reload          # serves on http://127.0.0.1:8000
+```
+
+The backend serves the API under `/api/v1` and interactive OpenAPI docs at `/docs`.
+
+> **Port note:** the frontend proxies `/api/*` to the URL configured in
+> `frontend/next.config.ts`, which points at `http://127.0.0.1:8000` (uvicorn's default).
+> If you run the backend on a different port, update the rewrite target to match.
+
+#### Create the first superuser (idempotent)
+
+```bash
+# FIRST_SUPERUSER_PASSWORD is required; the script refuses to run without it.
+export FIRST_SUPERUSER=admin@example.com
+export FIRST_SUPERUSER_PASSWORD=change-me
+python -m app.initial_data
+```
+
+Run it after `alembic upgrade head`. Safe to run repeatedly: it creates the superuser if
+missing, otherwise just ensures the account is an active superuser (existing passwords are
+left untouched).
+
+### Frontend (from `frontend/`)
+
+```bash
+npm install
+npm run dev                     # http://localhost:3000
+```
+
+## Running tests
+
+```bash
+# Backend (from backend/) — SQLite, no external services needed
 pytest
 
-# Frontend tests
-cd frontend
-npm test
+# Frontend (from frontend/)
+npm run lint
 ```
 
-### Documentation
-- API documentation is automatically generated and available at `/docs`
-- WebSocket documentation is available at `/async-api`
-- GraphQL documentation is available in the GraphQL Playground
+## Roadmap / future vision
 
-## Deployment
+**The following are planned and not yet implemented.** They describe where this skeleton is
+headed, not what it does today. Some have placeholder scaffolding (settings keys, columns, or
+unused dependencies) but no working behavior. The detailed, task-by-task plan lives in
+[`TASKS.md`](TASKS.md); a longer-horizon wishlist is in [`ROADMAP.md`](ROADMAP.md).
 
-Deployment guides for various platforms are available in the `docs/deployment` directory.
+- **Admin user-management** — superuser-only list/create/edit endpoints and an `/admin` UI
+  (TASKS.md T18–T19).
+- **Application settings** — an `AppSetting` key/value model with public/superuser endpoints
+  and an admin panel (TASKS.md T20–T22).
+- **Audit logging & lockout** — the `last_login` / `login_count` / `failed_login_attempts`
+  columns exist on the `User` model, but `failed_login_attempts` is not yet wired; planned
+  work increments/resets it and adds basic rate-limiting/lockout (TASKS.md T24).
+- **Account deactivation/deletion** — `DELETE /users/me` soft-delete and superuser hard-delete
+  (TASKS.md T25).
+- **GraphQL API** — a GraphQL endpoint and Playground (`/graphql`). Not built.
+- **WebSocket support** — realtime endpoints and AsyncAPI docs (`/async-api`). Not built.
+- **Redis caching** — `REDIS_*` settings and the `redis` dependency are present as
+  placeholders only; nothing uses them yet.
+- **Web3 integration** — a `web3_address` column and `WEB3_PROVIDER_URI` setting exist as
+  scaffolding only; no Web3 logic is wired.
+- **Email / SMTP** — `SMTP_*` settings exist as placeholders; there is no email service.
+- **OAuth2 / social login** — planned; only first-party JWT auth exists today.
+- **Background jobs, rate limiting, CSRF/security headers** — planned (see ROADMAP.md).
+- **Docker / docker-compose dev environment** — a `docker-compose.yml` exists at the repo root
+  as a starting point, but it references Dockerfiles that aren't part of the skeleton yet; the
+  supported workflow is the native commands above (TASKS.md / ROADMAP.md).
+- **CI** — GitHub Actions to run `pytest` + `npm run lint` on push/PR (TASKS.md T26).
+
+## More
+
+- **Conventions & architecture:** [`CLAUDE.md`](CLAUDE.md) — the source of truth for how to
+  work in this repo (Pydantic v2 only, crud-only DB access, SQLite-portable models, etc.).
+- **Roadmap:** [`TASKS.md`](TASKS.md) (phased, task-level) and [`ROADMAP.md`](ROADMAP.md)
+  (longer-horizon).
+- **Positioning:** [`MARKETING.md`](MARKETING.md).
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).
