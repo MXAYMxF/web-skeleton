@@ -49,9 +49,9 @@ endpoints expose them yet. Build the "me" surface first since admin reuses the s
       `PATCH /users/me`. Link from the navbar user menu. All calls through `utils/api.ts`.
 
 ## Phase 7 — Superuser & admin
-- [ ] **T16** `get_current_active_superuser` dependency in `core/auth.py` (reuses
+- [x] **T16** `get_current_active_superuser` dependency in `core/auth.py` (reuses
       `get_current_user`, 403s non-superusers). Single source of truth for admin gating.
-- [ ] **T17** First-superuser bootstrap: add `FIRST_SUPERUSER` / `FIRST_SUPERUSER_PASSWORD`
+- [x] **T17** First-superuser bootstrap: add `FIRST_SUPERUSER` / `FIRST_SUPERUSER_PASSWORD`
       to `settings`, plus a `crud.user.get_or_create_superuser` helper and a small
       `app/initial_data.py` seed script (idempotent). Document in README.
 - [ ] **T18** Admin user-management API (`api/v1/admin.py` or `users` router, superuser-only):
@@ -102,6 +102,11 @@ endpoints expose them yet. Build the "me" surface first since admin reuses the s
   `crud.user.update` password re-hash, `GET`/`PATCH /users/me` with email-unique
   guard, and a frontend `/settings` page. Backend suite 10 passed; frontend `tsc`
   + ESLint clean. Next up: T16–T19 (superuser/admin).
+- 2026-06-29: Completed T16–T17 (superuser keystone): `get_current_active_superuser`
+  gating dependency, `FIRST_SUPERUSER`/`FIRST_SUPERUSER_PASSWORD` settings, idempotent
+  `crud.user.get_or_create_superuser`, and an `app/initial_data.py` seed script
+  (verified live: seeds, idempotent, errors on missing password, superuser logs in via
+  real password). Suite 15 passed. Next up: T18–T19 (admin user-management API + UI).
 
 ## Conventions for the new work
 - Keep all DB access in `crud` objects (`crud.user`, `crud.app_setting`); no inline
