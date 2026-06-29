@@ -31,9 +31,9 @@ Work top-to-bottom; each task is one small commit so power loss costs at most on
 - [x] **T10** Final pass: run backend tests + frontend lint; tidy CLAUDE.md if anything drifted.
 
 ## Phase 5 — Features / pages (backlog)
-- [ ] **T11** Sign-up button: add a register CTA (currently only "Sign in" exists in the
+- [x] **T11** Sign-up button: add a register CTA (currently only "Sign in" exists in the
       navbar/LoginModal). Wire it to `auth.register` and surface a sign-up form/modal.
-- [ ] **T12** Add static pages: Privacy Policy, Terms & Conditions, and Support — with
+- [x] **T12** Add static pages: Privacy Policy, Terms & Conditions, and Support — with
       footer links to each. (Next.js routes under `src/app/`, linked from `Footer.tsx`.)
 
 ## Phase 6 — User self-service (account management)
@@ -95,6 +95,9 @@ endpoints expose them yet. Build the "me" surface first since admin reuses the s
   that absorbs the former "known follow-ups". Suggested order: T11–T15 (auth UX +
   account self-service), then T16–T19 (admin), then T20–T22 (app settings), then
   Phase 9. Each task remains one small commit.
+- 2026-06-29: Completed T11 (sign-up CTA + dual-mode auth modal wired to `auth.register`)
+  and T12 (Privacy/Terms/Support pages + footer links), run in parallel. Frontend `tsc`
+  + ESLint clean. Next up: T13–T15 (account self-service).
 
 ## Conventions for the new work
 - Keep all DB access in `crud` objects (`crud.user`, `crud.app_setting`); no inline
