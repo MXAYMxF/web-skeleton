@@ -39,4 +39,15 @@ export const auth = {
   },
 };
 
+// User endpoints (current user)
+export const users = {
+  getMe: async () => (await api.get('/users/me')).data,
+  updateMe: async (data: {
+    full_name?: string | null;
+    email?: string;
+    password?: string;
+    preferences?: Record<string, unknown>;
+  }) => (await api.patch('/users/me', data)).data,
+};
+
 export default api;

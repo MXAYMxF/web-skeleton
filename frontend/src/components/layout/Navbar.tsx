@@ -48,6 +48,12 @@ export default function Navbar() {
                 <span className="text-sm text-gray-700">
                   {user?.full_name || user?.email}
                 </span>
+                <Link
+                  href="/settings"
+                  className="text-sm font-medium text-gray-500 hover:text-gray-700"
+                >
+                  Settings
+                </Link>
                 <button
                   onClick={() => clearAuth()}
                   className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"

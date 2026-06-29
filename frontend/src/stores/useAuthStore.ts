@@ -7,6 +7,7 @@ interface User {
   full_name: string | null;
   is_active: boolean;
   is_superuser: boolean;
+  preferences?: Record<string, unknown> | null;
 }
 
 interface AuthState {
