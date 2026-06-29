@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import '@/app/fonts.css';
 
 export default function Footer() {
@@ -19,6 +20,15 @@ export default function Footer() {
             </span>
           </div>
           <div className="flex items-center space-x-4 mt-2 sm:mt-0">
+            <Link href="/privacy" className="hover:text-indigo-600 transition-colors">
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-indigo-600 transition-colors">
+              Terms
+            </Link>
+            <Link href="/support" className="hover:text-indigo-600 transition-colors">
+              Support
+            </Link>
             <a
               href="https://github.com/MXAYMxF/web-skeleton"
               target="_blank"
