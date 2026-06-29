@@ -208,7 +208,20 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
    alembic upgrade head
    ```
 
-4. Start the development servers:
+4. Create the first superuser (idempotent):
+   ```bash
+   # Set credentials via env or backend/.env. FIRST_SUPERUSER_PASSWORD is
+   # required; the script refuses to run without it.
+   export FIRST_SUPERUSER=admin@example.com
+   export FIRST_SUPERUSER_PASSWORD=change-me
+   cd backend
+   python -m app.initial_data
+   ```
+   Run it after `alembic upgrade head`. Safe to run repeatedly: it creates the
+   superuser if missing, otherwise just ensures the account is an active
+   superuser (existing passwords are left untouched).
+
+5. Start the development servers:
    ```bash
    # Backend
    cd backend
@@ -219,7 +232,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
    npm run dev
    ```
 
-5. Access the applications:
+6. Access the applications:
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:8000
    - API Documentation: http://localhost:8000/docs

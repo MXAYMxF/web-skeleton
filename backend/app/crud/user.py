@@ -47,6 +47,30 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
 
         return super().update(db, db_obj=db_obj, obj_in=update_data)
 
+    def get_or_create_superuser(
+        self, db: Session, *, email: str, password: str
+    ) -> User:
+        """Idempotently ensure an active superuser with ``email`` exists.
+
+        If the user already exists, promote it to an active superuser without
+        touching its password. Otherwise create it, then promote. Calling this
+        twice yields the same single user.
+        """
+        user = self.get_by_email(db, email=email)
+        if user is None:
+            user = self.create(
+                db,
+                obj_in=UserCreate(
+                    email=email,
+                    password=password,
+                    full_name="Initial Superuser",
+                    is_active=True,
+                ),
+            )
+        return self.update(
+            db, db_obj=user, obj_in={"is_superuser": True, "is_active": True}
+        )
+
     def authenticate(
         self, db: Session, *, email: str, password: str
     ) -> Optional[User]:

@@ -49,6 +49,11 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "your-secret-key-here"  # Change in production
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+    # First superuser bootstrap (see app/initial_data.py). Password has no
+    # default on purpose: the seed script refuses to run until it is set.
+    FIRST_SUPERUSER: Optional[EmailStr] = "admin@example.com"
+    FIRST_SUPERUSER_PASSWORD: Optional[str] = None
     
     # CORS
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
