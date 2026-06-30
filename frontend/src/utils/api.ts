@@ -15,6 +15,19 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// On 401 (expired/invalid token), clear the persisted session so the UI stops
+// showing a logged-in state backed by a dead token. Gated pages react to the
+// store change and fall back to their signed-out view.
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      useAuthStore.getState().clearAuth();
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Auth endpoints
 export const auth = {
   login: async (email: string, password: string) => {
