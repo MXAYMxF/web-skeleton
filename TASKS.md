@@ -54,11 +54,11 @@ endpoints expose them yet. Build the "me" surface first since admin reuses the s
 - [x] **T17** First-superuser bootstrap: add `FIRST_SUPERUSER` / `FIRST_SUPERUSER_PASSWORD`
       to `settings`, plus a `crud.user.get_or_create_superuser` helper and a small
       `app/initial_data.py` seed script (idempotent). Document in README.
-- [ ] **T18** Admin user-management API (`api/v1/admin.py` or `users` router, superuser-only):
+- [x] **T18** Admin user-management API (`api/v1/admin.py` or `users` router, superuser-only):
       `GET /users` (paginated list), `GET /users/{id}`, `POST /users` (create),
       `PATCH /users/{id}` (edit, toggle `is_active` / `is_superuser`). Reuse `crud.user`;
       add `get_multi` / count to `CRUDBase` if missing. Guard against self-demotion/lockout.
-- [ ] **T19** Frontend `/admin` page (superuser-gated route + nav entry hidden for
+- [x] **T19** Frontend `/admin` page (superuser-gated route + nav entry hidden for
       non-superusers): user table with search/pagination, activate/deactivate, role toggle,
       and a create-user form. All calls through `utils/api.ts`.
 
@@ -107,6 +107,13 @@ endpoints expose them yet. Build the "me" surface first since admin reuses the s
   `crud.user.get_or_create_superuser`, and an `app/initial_data.py` seed script
   (verified live: seeds, idempotent, errors on missing password, superuser logs in via
   real password). Suite 15 passed. Next up: T18–T19 (admin user-management API + UI).
+- 2026-06-30: Completed T18–T19 (admin user-management). T18: superuser-only `/admin`
+  router (paginated+searchable list, get/create/patch), `AdminUserCreate`/`AdminUserUpdate`
+  schemas keeping `is_superuser` out of self-service, self-demotion/deactivation guards,
+  `CRUDBase.count` + `crud.user` search. T19: superuser-gated `/admin` UI (table, search,
+  pagination, activate/role toggles with self-row guards, create-user form) + Admin nav
+  link. Verified live in-browser (gates, toggles round-trip, guards). Backend 26 passed;
+  frontend tsc+lint clean. Phase 7 done. Next up: T20–T22 (app settings) or Phase 9.
 
 ## Conventions for the new work
 - Keep all DB access in `crud` objects (`crud.user`, `crud.app_setting`); no inline
