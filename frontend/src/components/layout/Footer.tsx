@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import '@/app/fonts.css';
+import ApiStatus from './ApiStatus';
 
 export default function Footer() {
   return (
@@ -37,8 +38,7 @@ export default function Footer() {
             >
               GitHub
             </a>
-            <span>v1.0.0</span>
-            <span>Released: Feb 20, 2025</span>
+            <ApiStatus />
           </div>
         </div>
       </div>
