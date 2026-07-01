@@ -114,4 +114,18 @@ export const admin = {
   ): Promise<AdminUser> => (await api.patch(`/admin/users/${id}`, data)).data,
 };
 
+// Application-level settings (the safe, publicly-readable subset).
+export interface AppSettings {
+  site_name: string;
+  registration_open: boolean;
+  maintenance_mode: boolean;
+}
+
+// App settings endpoints. GET is public; PATCH is superuser-only.
+export const settings = {
+  getSettings: async (): Promise<AppSettings> => (await api.get('/settings')).data,
+  updateSettings: async (data: Partial<AppSettings>): Promise<AppSettings> =>
+    (await api.patch('/settings', data)).data,
+};
+
 export default api;

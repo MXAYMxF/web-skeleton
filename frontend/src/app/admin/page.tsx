@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { admin, type AdminUser } from '@/utils/api';
+import { admin, settings, type AdminUser, type AppSettings } from '@/utils/api';
 import { useAuthStore } from '@/stores/useAuthStore';
 
 const PAGE_SIZE = 20;
@@ -46,6 +46,13 @@ export default function AdminPage() {
   const [newIsSuperuser, setNewIsSuperuser] = useState(false);
   const [creating, setCreating] = useState(false);
 
+  // Application settings form.
+  const [siteName, setSiteName] = useState('');
+  const [registrationOpen, setRegistrationOpen] = useState(false);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsSaving, setSettingsSaving] = useState(false);
+
   const isSuperuser = isAuthenticated && user?.is_superuser === true;
 
   const loadUsers = useCallback(async () => {
@@ -66,6 +73,29 @@ export default function AdminPage() {
     if (!isSuperuser) return;
     loadUsers();
   }, [isSuperuser, loadUsers]);
+
+  const applySettings = useCallback((s: AppSettings) => {
+    setSiteName(s.site_name);
+    setRegistrationOpen(s.registration_open);
+    setMaintenanceMode(s.maintenance_mode);
+  }, []);
+
+  const loadSettings = useCallback(async () => {
+    setSettingsLoading(true);
+    try {
+      applySettings(await settings.getSettings());
+    } catch (error) {
+      console.error('Failed to load settings:', error);
+      toast.error(errorDetail(error, 'Failed to load settings.'));
+    } finally {
+      setSettingsLoading(false);
+    }
+  }, [applySettings]);
+
+  useEffect(() => {
+    if (!isSuperuser) return;
+    loadSettings();
+  }, [isSuperuser, loadSettings]);
 
   if (!isAuthenticated) {
     return (
@@ -153,6 +183,25 @@ export default function AdminPage() {
       toast.error(errorDetail(error, 'Failed to create user.'));
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleSaveSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSettingsSaving(true);
+    try {
+      const updated = await settings.updateSettings({
+        site_name: siteName.trim(),
+        registration_open: registrationOpen,
+        maintenance_mode: maintenanceMode,
+      });
+      applySettings(updated);
+      toast.success('Settings saved.');
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+      toast.error(errorDetail(error, 'Failed to save settings.'));
+    } finally {
+      setSettingsSaving(false);
     }
   };
 
@@ -398,6 +447,68 @@ export default function AdminPage() {
             <div>
               <button type="submit" disabled={creating} className={primaryButtonClass}>
                 {creating ? 'Creating…' : 'Create user'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      {/* Application settings */}
+      <section className="bg-white shadow rounded-lg">
+        <div className="px-4 py-5 sm:p-6">
+          <h2 className="text-lg font-medium leading-6 text-gray-900">Application settings</h2>
+          <form onSubmit={handleSaveSettings} className="mt-4 space-y-4 max-w-lg">
+            <div>
+              <label htmlFor="site_name" className="block text-sm font-medium text-gray-700">
+                Site name
+              </label>
+              <input
+                type="text"
+                id="site_name"
+                value={siteName}
+                onChange={(e) => setSiteName(e.target.value)}
+                className={inputClass}
+                disabled={settingsLoading}
+              />
+            </div>
+            <div>
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={registrationOpen}
+                  onChange={(e) => setRegistrationOpen(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  disabled={settingsLoading}
+                />
+                Registration open
+              </label>
+              <p className="mt-1 text-xs text-gray-500">
+                When off, new users can&apos;t self-register.
+              </p>
+            </div>
+            <div>
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={maintenanceMode}
+                  onChange={(e) => setMaintenanceMode(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  disabled={settingsLoading}
+                />
+                Maintenance mode
+              </label>
+              <p className="mt-1 text-xs text-gray-500">
+                When on, non-superusers get a 503; health, login, and public settings stay
+                reachable.
+              </p>
+            </div>
+            <div>
+              <button
+                type="submit"
+                disabled={settingsLoading || settingsSaving}
+                className={primaryButtonClass}
+              >
+                {settingsSaving ? 'Saving…' : 'Save settings'}
               </button>
             </div>
           </form>
