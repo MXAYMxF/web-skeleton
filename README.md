@@ -1,5 +1,7 @@
 # web-skeleton
 
+[![CI](https://github.com/MXAYMxF/web-skeleton/actions/workflows/ci.yml/badge.svg)](https://github.com/MXAYMxF/web-skeleton/actions/workflows/ci.yml)
+
 A small, correctly-wired full-stack starter — **FastAPI + Next.js, with auth already
 working** — meant to be copied into a real project so you start at "edit the feature,"
 not "wire the plumbing." It favors clarity and correct wiring over feature count.

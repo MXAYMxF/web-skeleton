@@ -1,0 +1,58 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  backend:
+    name: Backend (pytest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      # No Python version is pinned in setup.py/requirements.txt, so we use 3.12,
+      # the current stable release, which is fully compatible with the deps.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install -e .
+          pip install -r requirements.txt
+
+      # Tests use in-memory SQLite (see app/tests/conftest.py) — no Postgres/Redis needed.
+      - name: Run tests
+        run: pytest
+
+  frontend:
+    name: Frontend (lint + type-check)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node 20 LTS; the project targets @types/node ^20 and Next 15 / React 19.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      # No `npm run build` step: `next build` would require a NEXT_PUBLIC_API_URL and
+      # can attempt data fetching against a backend that isn't running in CI. Lint +
+      # tsc give us static verification without needing real env or external services.
