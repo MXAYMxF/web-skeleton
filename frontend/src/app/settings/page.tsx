@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { users } from '@/utils/api';
@@ -30,7 +31,8 @@ function errorDetail(error: unknown, fallback: string): string {
 }
 
 export default function SettingsPage() {
-  const { token, user, isAuthenticated, setAuth } = useAuthStore();
+  const { token, user, isAuthenticated, setAuth, clearAuth } = useAuthStore();
+  const router = useRouter();
 
   // Profile form
   const [fullName, setFullName] = useState('');
@@ -46,6 +48,10 @@ export default function SettingsPage() {
   const [preferences, setPreferences] = useState<Record<string, unknown>>({});
   const [theme, setTheme] = useState<ThemePreference>('system');
   const [savingPreferences, setSavingPreferences] = useState(false);
+
+  // Danger zone: two-step inline confirm for account deactivation.
+  const [confirmingDeactivate, setConfirmingDeactivate] = useState(false);
+  const [deactivating, setDeactivating] = useState(false);
 
   // Hydrate local form state from a User object.
   const hydrate = (u: typeof user) => {
@@ -150,6 +156,21 @@ export default function SettingsPage() {
       toast.error(errorDetail(error, 'Failed to save preferences.'));
     } finally {
       setSavingPreferences(false);
+    }
+  };
+
+  const handleDeactivate = async () => {
+    setDeactivating(true);
+    try {
+      await users.deleteMe();
+      clearAuth();
+      toast.success('Your account has been deactivated.');
+      router.push('/');
+    } catch (error) {
+      console.error('Account deactivation error:', error);
+      toast.error(errorDetail(error, 'Failed to deactivate your account.'));
+      setDeactivating(false);
+      setConfirmingDeactivate(false);
     }
   };
 
@@ -275,6 +296,48 @@ export default function SettingsPage() {
               </button>
             </div>
           </form>
+        </div>
+      </section>
+
+      {/* Danger zone */}
+      <section className="bg-white shadow rounded-lg ring-1 ring-red-200">
+        <div className="px-4 py-5 sm:p-6">
+          <h2 className="text-lg font-medium leading-6 text-red-700">Danger zone</h2>
+          <p className="mt-2 text-sm text-gray-500 max-w-lg">
+            Deactivating your account signs you out and disables sign-in. Contact an
+            administrator if you need it restored.
+          </p>
+          <div className="mt-4">
+            {confirmingDeactivate ? (
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-700">Are you sure?</span>
+                <button
+                  type="button"
+                  onClick={handleDeactivate}
+                  disabled={deactivating}
+                  className="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-50"
+                >
+                  {deactivating ? 'Deactivating...' : 'Yes, deactivate'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmingDeactivate(false)}
+                  disabled={deactivating}
+                  className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirmingDeactivate(true)}
+                className="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+              >
+                Deactivate my account
+              </button>
+            )}
+          </div>
         </div>
       </section>
     </div>

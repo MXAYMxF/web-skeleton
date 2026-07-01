@@ -38,6 +38,9 @@ export default function AdminPage() {
   // Track which rows have an in-flight update so we can disable their controls.
   const [pendingIds, setPendingIds] = useState<Set<number>>(new Set());
 
+  // Which row (if any) is currently showing its inline delete confirmation.
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<number | null>(null);
+
   // Create-user form.
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -154,6 +157,20 @@ export default function AdminPage() {
     }
   };
 
+  const handleDelete = async (id: number) => {
+    setPending(id, true);
+    try {
+      await admin.deleteUser(id);
+      toast.success('User deleted.');
+      setConfirmingDeleteId(null);
+      await loadUsers();
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      toast.error(errorDetail(error, 'Failed to delete user.'));
+      setPending(id, false);
+    }
+  };
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newEmail.trim() || !newPassword) {
@@ -216,6 +233,8 @@ export default function AdminPage() {
     'rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50';
   const secondaryButtonClass =
     'rounded-md bg-white px-2.5 py-1.5 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed';
+  const dangerButtonClass =
+    'rounded-md bg-white px-2.5 py-1.5 text-xs font-semibold text-red-700 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed';
 
   return (
     <div className="space-y-6">
@@ -340,6 +359,40 @@ export default function AdminPage() {
                             >
                               {u.is_superuser ? 'Remove superuser' : 'Make superuser'}
                             </button>
+                            {confirmingDeleteId === u.id ? (
+                              <>
+                                <button
+                                  type="button"
+                                  className={dangerButtonClass}
+                                  disabled={isSelf || isPending}
+                                  onClick={() => handleDelete(u.id)}
+                                >
+                                  {isPending ? 'Deleting…' : 'Confirm delete'}
+                                </button>
+                                <button
+                                  type="button"
+                                  className={secondaryButtonClass}
+                                  disabled={isPending}
+                                  onClick={() => setConfirmingDeleteId(null)}
+                                >
+                                  Cancel
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                type="button"
+                                className={dangerButtonClass}
+                                disabled={isSelf || isPending}
+                                title={
+                                  isSelf
+                                    ? 'You cannot delete your own account.'
+                                    : undefined
+                                }
+                                onClick={() => setConfirmingDeleteId(u.id)}
+                              >
+                                Delete
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>

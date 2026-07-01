@@ -50,6 +50,14 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
 
         return super().update(db, db_obj=db_obj, obj_in=update_data)
 
+    def deactivate(self, db: Session, *, user: User) -> User:
+        """Soft-delete a user by clearing ``is_active``.
+
+        The row is preserved (unlike ``remove``); the user simply can no longer
+        authenticate, since ``get_current_active_user`` rejects inactive users.
+        """
+        return self.update(db, db_obj=user, obj_in={"is_active": False})
+
     def create_admin(self, db: Session, *, obj_in: AdminUserCreate) -> User:
         """Create a user from admin input, honoring the ``is_superuser`` flag.
 

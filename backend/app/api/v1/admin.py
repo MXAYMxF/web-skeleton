@@ -116,3 +116,29 @@ def update_user(
             )
 
     return crud.user.update(db, db_obj=user, obj_in=user_in)
+
+
+@router.delete("/users/{user_id}")
+def delete_user(
+    *,
+    db: Session = Depends(get_db),
+    user_id: int,
+    current_user: User = Depends(auth.get_current_active_superuser),
+) -> Any:
+    """Hard-delete a user by id.
+
+    Guards against an acting superuser deleting their own account (which would
+    be an irreversible self-lockout), mirroring the PATCH self-protection.
+    """
+    user = crud.user.get(db, id=user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user_id == current_user.id:
+        raise HTTPException(
+            status_code=400,
+            detail="You cannot delete your own account",
+        )
+
+    crud.user.remove(db, id=user_id)
+    return {"detail": "User deleted"}

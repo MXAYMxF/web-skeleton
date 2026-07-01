@@ -61,6 +61,7 @@ export const users = {
     password?: string;
     preferences?: Record<string, unknown>;
   }) => (await api.patch('/users/me', data)).data,
+  deleteMe: async () => (await api.delete('/users/me')).data,
 };
 
 // Shape of a user as returned by the admin endpoints.
@@ -112,6 +113,8 @@ export const admin = {
       is_superuser?: boolean;
     }
   ): Promise<AdminUser> => (await api.patch(`/admin/users/${id}`, data)).data,
+
+  deleteUser: async (id: number) => (await api.delete(`/admin/users/${id}`)).data,
 };
 
 // Application-level settings (the safe, publicly-readable subset).

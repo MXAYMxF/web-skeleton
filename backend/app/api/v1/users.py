@@ -47,3 +47,19 @@ def update_current_user(
 
     user = crud.user.update(db, db_obj=current_user, obj_in=user_in)
     return user
+
+
+@router.delete("/me")
+def deactivate_current_user(
+    *,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth.get_current_active_user),
+) -> Any:
+    """Deactivate (soft-delete) the currently authenticated user.
+
+    Sets ``is_active = False``; the row is preserved. The caller's access token
+    keeps its signature but subsequent authenticated requests will fail with a
+    400 (inactive user), so clients should clear their session afterwards.
+    """
+    crud.user.deactivate(db, user=current_user)
+    return {"detail": "Account deactivated"}
