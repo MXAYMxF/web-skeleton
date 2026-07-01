@@ -15,6 +15,12 @@ from app.db.session import get_db
 from app.models.user import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login")
+# A non-erroring variant: yields ``None`` instead of raising when no bearer token
+# is present. Used by the maintenance-mode guard, which must treat anonymous
+# requests as "not a superuser" rather than reject them outright.
+optional_oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl=f"{settings.API_V1_STR}/auth/login", auto_error=False
+)
 
 # bcrypt only considers the first 72 bytes of a password.
 _BCRYPT_MAX_BYTES = 72
@@ -84,6 +90,23 @@ async def get_current_user(
     if user is None:
         raise credentials_exception
     return user
+
+async def get_optional_current_user(
+    db: Session = Depends(get_db),
+    token: Optional[str] = Depends(optional_oauth2_scheme),
+) -> Optional[User]:
+    """Resolve the current user if a (valid) token is present, else ``None``.
+
+    Never raises on missing/invalid credentials — it simply returns ``None`` so
+    callers can make their own decision (e.g. the maintenance guard).
+    """
+    if not token:
+        return None
+    try:
+        return await get_current_user(db=db, token=token)
+    except HTTPException:
+        return None
+
 
 def get_current_active_user(
     current_user: User = Depends(get_current_user),

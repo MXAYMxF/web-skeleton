@@ -86,7 +86,19 @@ async def register(
     In development:
     - Automatically activates users
     - Allows registration even if email exists (updates the user instead)
+
+    Honors the ``registration_open`` setting. Precedence: the development
+    convenience wins, so the skeleton stays easy to use locally; in
+    staging/production a closed registration returns 403.
     """
+    if settings.ENVIRONMENT != "development":
+        flags = crud.app_setting.get_all_dict(db)
+        if not flags.get("registration_open", True):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Registration is currently closed",
+            )
+
     existing = crud.user.get_by_email(db, email=user_in.email)
 
     if existing and settings.ENVIRONMENT != "development":
