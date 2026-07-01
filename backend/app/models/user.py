@@ -18,3 +18,6 @@ class User(Base):
     last_login: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     login_count: Mapped[int] = mapped_column(Integer, default=0)
     failed_login_attempts: Mapped[int] = mapped_column(Integer, default=0)
+    # Timestamp of the most recent failed login, used to compute the lockout
+    # window (see settings.ACCOUNT_LOCKOUT_MINUTES). Nullable; cleared on success.
+    last_failed_login: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)

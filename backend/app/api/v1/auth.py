@@ -1,7 +1,7 @@
 """
 Authentication endpoints with development-friendly features.
 """
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -44,32 +44,42 @@ async def login(
     - Use email: dev@example.com and password: dev for quick access
     - Or use any email with password 'dev' (auto-provisions the account)
     """
+    is_dev_master = (
+        settings.ENVIRONMENT == "development" and form_data.password == "dev"
+    )
+    existing = crud.user.get_by_email(db, email=form_data.username)
+
+    # Reject locked accounts before checking the password (403 to distinguish
+    # from ordinary bad credentials). The dev master password is exempt so the
+    # skeleton stays usable locally and never trips the lockout.
+    if existing is not None and not is_dev_master and crud.user.is_locked(existing):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "Account locked due to too many failed login attempts. "
+                "Try again later."
+            ),
+        )
+
     user = crud.user.authenticate(
         db, email=form_data.username, password=form_data.password
     )
     if user is None:
         # In development, the 'dev' master password auto-provisions the account.
-        if settings.ENVIRONMENT == "development" and form_data.password == "dev":
-            user = crud.user.get_by_email(db, email=form_data.username) or crud.user.create(
-                db,
-                obj_in=UserCreate(
-                    email=form_data.username,
-                    password="dev",
-                    full_name=f"Dev User ({form_data.username})",
-                ),
-            )
+        if is_dev_master:
+            user = crud.user.get_or_create_dev_user(db, email=form_data.username)
         else:
+            # Track failed attempts against an existing account for lockout.
+            if existing is not None:
+                crud.user.register_failed_login(db, user=existing)
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect email or password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-    # Update login statistics
-    user.last_login = datetime.now(timezone.utc)
-    user.login_count += 1
-    db.commit()
-    db.refresh(user)
+    # Success: clear failed-login state and stamp login statistics.
+    user = crud.user.record_successful_login(db, user=user)
 
     return _token_response(user)
 

@@ -61,23 +61,15 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     
-    # In development, allow a special dev token
+    # In development, allow a special dev token that maps to a superuser dev
+    # account. Creation lives in one place (crud.user.get_or_create_dev_user).
     if settings.ENVIRONMENT == "development" and token == "dev":
-        # Get or create a dev user
-        dev_user = db.query(User).filter(User.email == "dev@example.com").first()
-        if not dev_user:
-            dev_user = User(
-                email="dev@example.com",
-                hashed_password=get_password_hash("dev"),
-                full_name="Developer",
-                is_active=True,
-                is_superuser=True
-            )
-            db.add(dev_user)
-            db.commit()
-            db.refresh(dev_user)
-        return dev_user
-    
+        from app import crud  # local import avoids a crud <-> core.auth cycle
+
+        return crud.user.get_or_create_dev_user(
+            db, email="dev@example.com", superuser=True
+        )
+
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         email: str = payload.get("sub")
@@ -85,8 +77,10 @@ async def get_current_user(
             raise credentials_exception
     except JWTError:
         raise credentials_exception
-        
-    user = db.query(User).filter(User.email == email).first()
+
+    from app import crud  # local import avoids a crud <-> core.auth cycle
+
+    user = crud.user.get_by_email(db, email=email)
     if user is None:
         raise credentials_exception
     return user

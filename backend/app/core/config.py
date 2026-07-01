@@ -50,6 +50,12 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
+    # Brute-force protection: after MAX_FAILED_LOGIN_ATTEMPTS consecutive failed
+    # logins the account is locked for ACCOUNT_LOCKOUT_MINUTES (window measured
+    # from the last failed attempt).
+    MAX_FAILED_LOGIN_ATTEMPTS: int = 5
+    ACCOUNT_LOCKOUT_MINUTES: int = 15
+
     # First superuser bootstrap (see app/initial_data.py). Password has no
     # default on purpose: the seed script refuses to run until it is set.
     FIRST_SUPERUSER: Optional[EmailStr] = "admin@example.com"
