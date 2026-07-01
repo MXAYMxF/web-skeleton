@@ -42,11 +42,11 @@
   - [ ] Multi-stage builds
   - [ ] Production optimizations
   - [ ] Environment configuration
-  - [ ] Health checks
+  - [x] Health checks (`/api/v1/health`)
 
 ### 4. CI/CD Pipeline
 - [ ] GitHub Actions
-  - [ ] Test workflow
+  - [x] Test workflow (pytest + frontend lint/type-check on push/PR)
   - [ ] Build workflow
   - [ ] Deploy workflow
   - [ ] Release automation
@@ -95,10 +95,12 @@
 2. WebSocket integration
 3. Social authentication
 4. File upload and management
-5. Admin dashboard
-6. Email notifications
-7. Background jobs
-8. Analytics integration
+5. Email notifications
+6. Background jobs
+7. Analytics integration
+8. AI integration layer (Claude / OpenAI — see `AI_INTEGRATION.md`)
+
+(Admin dashboard / user-management shipped — see `TASKS.md` Phase 7 and the `/admin` page.)
 9. Multi-language support
 10. Theme customization
 

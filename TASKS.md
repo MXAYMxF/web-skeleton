@@ -73,15 +73,16 @@ endpoints expose them yet. Build the "me" surface first since admin reuses the s
       app-level settings from T20–T21.
 
 ## Phase 9 — Hardening & consolidation (carried-over follow-ups)
-- [ ] **T23** Fold the 4th copy of dev-user creation (`core/auth.get_current_user`, the
+- [x] **T23** Fold the 4th copy of dev-user creation (`core/auth.get_current_user`, the
       `dev` bearer token path) into a single `crud.user` dev helper shared with `auth.login`.
-- [ ] **T24** Wire the unused audit field `failed_login_attempts`: increment on failed
+- [x] **T24** Wire the unused audit field `failed_login_attempts`: increment on failed
       login, reset on success, and add basic lockout/rate-limiting on repeated failures.
-- [ ] **T25** Account deactivation/deletion: `DELETE /users/me` (soft-delete via
+- [x] **T25** Account deactivation/deletion: `DELETE /users/me` (soft-delete via
       `is_active=False`) and a settings-page control, plus superuser hard-delete in admin.
-- [ ] **T26** Add CI (GitHub Actions): run `pytest` + `npm run lint` on push/PR.
-- [ ] **T27** Tests for all of the above (users/admin/settings endpoints; superuser gating;
+- [x] **T26** Add CI (GitHub Actions): run `pytest` + `npm run lint` on push/PR.
+- [x] **T27** Tests for all of the above (users/admin/settings endpoints; superuser gating;
       registration-closed and maintenance-mode paths). Refresh README/ROADMAP to match.
+      (Plus a fix: baseline migration JSONB → portable sa.JSON.)
 
 ## Status log
 - 2026-06-25: Recovered from power-cut session. Cleared 57 phantom file-mode diffs
@@ -126,6 +127,17 @@ endpoints expose them yet. Build the "me" surface first since admin reuses the s
   so it's silent). Fix: JSONB → portable sa.JSON(). Candidate for Phase 9.
   Also: AI_INTEGRATION.md design doc added (provider-agnostic LLM layer, AI-* backlog).
   Next up: Phase 9 (hardening: JSONB fix, dev-user consolidation, lockout, CI) or build AI-*.
+- 2026-07-01: Completed Phase 9 (T23–T27) + the JSONB migration fix. T23 dev-user creation
+  folded into crud.user.get_or_create_dev_user (one place; also routed JWT lookup through
+  crud). T24 login lockout (MAX_FAILED_LOGIN_ATTEMPTS=5 / ACCOUNT_LOCKOUT_MINUTES=15, 403,
+  dev password exempt) + last_failed_login column/migration. T25 DELETE /users/me soft-delete
+  + superuser hard-delete with self-guards, frontend danger-zone + admin row delete. T26
+  GitHub Actions CI (pytest + lint/tsc). Fixed baseline migration JSONB → sa.JSON so
+  `alembic upgrade head` runs on SQLite. T27 refreshed README (now-built features moved out
+  of roadmap, 47 passing, layout) + ROADMAP. All verified live in-browser/curl. Backend 47
+  passed; frontend tsc+lint clean. Phases 5–9 complete. Optional remaining: build the AI-*
+  layer (design in AI_INTEGRATION.md), or extras (site_name in UI, requirements.txt trim,
+  Docker/GraphQL/etc. from the roadmap).
 
 ## Conventions for the new work
 - Keep all DB access in `crud` objects (`crud.user`, `crud.app_setting`); no inline
