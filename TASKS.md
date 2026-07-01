@@ -63,13 +63,13 @@ endpoints expose them yet. Build the "me" surface first since admin reuses the s
       and a create-user form. All calls through `utils/api.ts`.
 
 ## Phase 8 — Web-application settings management
-- [ ] **T20** `AppSetting` model (key/value, portable `JSON` value column) + `crud.app_setting`,
+- [x] **T20** `AppSetting` model (key/value, portable `JSON` value column) + `crud.app_setting`,
       with an Alembic migration. Seed sensible defaults (e.g. `site_name`,
       `registration_open`, `maintenance_mode`). SQLite-portable so tests stay green.
-- [ ] **T21** Settings API: public `GET /settings` (safe subset, drives the frontend) and
+- [x] **T21** Settings API: public `GET /settings` (safe subset, drives the frontend) and
       superuser-only `PATCH /settings`. Honor `registration_open` in `auth.register` and
       `maintenance_mode` via middleware/dependency.
-- [ ] **T22** Frontend admin "Application settings" panel (under `/admin`): edit the
+- [x] **T22** Frontend admin "Application settings" panel (under `/admin`): edit the
       app-level settings from T20–T21.
 
 ## Phase 9 — Hardening & consolidation (carried-over follow-ups)
@@ -114,6 +114,18 @@ endpoints expose them yet. Build the "me" surface first since admin reuses the s
   pagination, activate/role toggles with self-row guards, create-user form) + Admin nav
   link. Verified live in-browser (gates, toggles round-trip, guards). Backend 26 passed;
   frontend tsc+lint clean. Phase 7 done. Next up: T20–T22 (app settings) or Phase 9.
+- 2026-07-01: Completed T20–T22 (Phase 8, app settings). AppSetting key/value model
+  (portable JSON) + crud.app_setting w/ idempotent default seeding + Alembic migration;
+  public GET /settings + superuser PATCH /settings; register honors registration_open
+  (dev stays open); router-wide maintenance_guard → 503 for non-superusers while health/
+  login/public settings stay reachable (superuser bypass). Frontend Application-settings
+  panel in /admin. Verified live: PATCH round-trips to public GET, maintenance allow-list
+  + superuser bypass confirmed. Backend 36 passed; frontend tsc+lint clean.
+  KNOWN ISSUE: baseline migration 1c51dd39c7b4 uses Postgres-only JSONB for user.preferences
+  → `alembic upgrade head` fails on SQLite (violates portability rule; tests use create_all
+  so it's silent). Fix: JSONB → portable sa.JSON(). Candidate for Phase 9.
+  Also: AI_INTEGRATION.md design doc added (provider-agnostic LLM layer, AI-* backlog).
+  Next up: Phase 9 (hardening: JSONB fix, dev-user consolidation, lockout, CI) or build AI-*.
 
 ## Conventions for the new work
 - Keep all DB access in `crud` objects (`crud.user`, `crud.app_setting`); no inline
