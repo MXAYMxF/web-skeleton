@@ -48,6 +48,12 @@ export default function Navbar() {
                 <span className="text-sm text-gray-700">
                   {user?.full_name || user?.email}
                 </span>
+                <Link
+                  href="/chat"
+                  className="text-sm font-medium text-gray-500 hover:text-gray-700"
+                >
+                  Chat
+                </Link>
                 {user?.is_superuser && (
                   <Link
                     href="/admin"
