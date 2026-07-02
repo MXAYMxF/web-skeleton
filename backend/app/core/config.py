@@ -87,7 +87,27 @@ class Settings(BaseSettings):
     
     # Web3
     WEB3_PROVIDER_URI: str = "http://localhost:8545"
-    
+
+    # --- AI / LLM layer -------------------------------------------------------
+    # All fields have safe defaults so ``Settings()`` still constructs with an
+    # empty environment. API keys are SERVER-SIDE ONLY: they are read from the
+    # environment here, never returned by any endpoint and never exposed to the
+    # browser (do NOT add a NEXT_PUBLIC_* mirror of these).
+    #
+    # AI_PROVIDER selects the backend. The registry falls back to the
+    # network-free "mock" provider whenever the selected provider has no key, so
+    # a fresh clone (and the test suite) runs offline with zero AI config.
+    AI_PROVIDER: str = "mock"  # "anthropic" | "openai" | "mock"
+    ANTHROPIC_API_KEY: Optional[str] = None
+    OPENAI_API_KEY: Optional[str] = None
+    # None -> the provider resolves its own default (Anthropic -> claude-sonnet-4-6).
+    AI_DEFAULT_MODEL: Optional[str] = None
+    AI_MAX_TOKENS: int = 1024
+    AI_REQUEST_TIMEOUT_SECONDS: int = 60
+    # SEAM: a future encrypted, DB-backed (UI-managed) key can be resolved here
+    # without reshaping the provider layer — e.g. add an `effective_ai_key()`
+    # helper that prefers a decrypted DB value and falls back to these env keys.
+
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:

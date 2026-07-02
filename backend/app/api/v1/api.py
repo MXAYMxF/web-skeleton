@@ -58,9 +58,16 @@ def maintenance_guard(
 api_router = APIRouter(dependencies=[Depends(maintenance_guard)])
 
 # Imported after api_router so module import order stays clean.
-from app.api.v1 import admin, auth as auth_routes, settings as settings_routes, users  # noqa: E402
+from app.api.v1 import (  # noqa: E402
+    admin,
+    ai,
+    auth as auth_routes,
+    settings as settings_routes,
+    users,
+)
 
 api_router.include_router(auth_routes.router, prefix="/auth", tags=["authentication"])
 api_router.include_router(users.router, prefix="/users", tags=["users"])
 api_router.include_router(admin.router, prefix="/admin", tags=["admin"])
 api_router.include_router(settings_routes.router, prefix="/settings", tags=["settings"])
+api_router.include_router(ai.router, prefix="/ai", tags=["ai"])

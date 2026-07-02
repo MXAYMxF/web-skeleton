@@ -37,3 +37,11 @@ mkdocs-material>=9.5.3
 
 # Web3
 web3>=6.14.0
+
+# AI / LLM providers (OPTIONAL — imported lazily by app.core.ai adapters).
+# Only needed when AI_PROVIDER is set to that provider AND its key is configured.
+# The default AI_PROVIDER=mock needs neither: the app imports and the test suite
+# runs green without these installed. Deliberately kept out of setup.py
+# install_requires so `pip install -e .` / tests stay lean.
+anthropic>=0.40.0   # verify latest at install time
+openai>=1.40.0      # verify latest at install time
