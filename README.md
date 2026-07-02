@@ -43,6 +43,11 @@ These features exist in the codebase and run today.
   Health/config endpoints.
 - **Tests with zero infra** — `pytest` runs on SQLite (no Postgres or other services needed);
   the suite is currently green (47 passing).
+- **AI integration layer** — a provider-agnostic LLM API: auth-gated `POST /ai/chat` and
+  SSE `POST /ai/chat/stream`, with lazy-imported Anthropic (Claude, default
+  `claude-sonnet-4-6`) and OpenAI adapters and a network-free **mock provider** that answers
+  offline when no key is set. Keys are server-side (`.env`) only. Conversations + messages
+  are persisted (ownership-scoped `/ai/conversations`). See [`AI_INTEGRATION.md`](AI_INTEGRATION.md).
 - **CI** — GitHub Actions runs `pytest` + frontend lint/type-check on every push and PR.
 
 ### Frontend (Next.js App Router)
@@ -53,7 +58,8 @@ These features exist in the codebase and run today.
   (target configured in `.env` via `NEXT_PUBLIC_API_URL`), so all calls share one base URL.
 - **Pages** — home, dashboard, settings (profile / password / theme preference / deactivate),
   a superuser-gated `/admin` (user table with search + pagination, role/active toggles,
-  create + delete, and an application-settings panel), privacy, terms, and support. A
+  create + delete, and an application-settings panel), a streaming `/chat` page (talks to the
+  AI layer, token-by-token), privacy, terms, and support. A
   dual-mode Login/Register modal, a navbar with **Sign in / Sign up** (and superuser-only
   **Admin** link), and a footer.
 - **Live API status** — the footer shows the configured backend URL with a live health
@@ -150,9 +156,6 @@ headed, not what it does today. Some have placeholder scaffolding (settings keys
 unused dependencies) but no working behavior. The detailed, task-by-task plan lives in
 [`TASKS.md`](TASKS.md); a longer-horizon wishlist is in [`ROADMAP.md`](ROADMAP.md).
 
-- **AI integration layer** — a provider-agnostic LLM API (Claude / OpenAI adapters, a
-  network-free mock for tests, an auth-gated `POST /ai/chat`). Designed but not yet built;
-  see [`AI_INTEGRATION.md`](AI_INTEGRATION.md) and the `AI-*` backlog.
 - **GraphQL API** — a GraphQL endpoint and Playground (`/graphql`). Not built.
 - **WebSocket support** — realtime endpoints and AsyncAPI docs (`/async-api`). Not built.
 - **Redis caching** — `REDIS_*` settings and the `redis` dependency are present as

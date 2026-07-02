@@ -84,7 +84,35 @@ endpoints expose them yet. Build the "me" surface first since admin reuses the s
       registration-closed and maintenance-mode paths). Refresh README/ROADMAP to match.
       (Plus a fix: baseline migration JSONB → portable sa.JSON.)
 
+## Phase 10 — AI integration layer (see AI_INTEGRATION.md)
+Provider-agnostic LLM layer. Keys are server-side (`.env`) only; a network-free mock
+provider makes the whole thing testable and demoable offline.
+- [x] **AI-1** `LLMProvider` ABC + normalized Pydantic v2 types (`core/ai/base.py`).
+- [x] **AI-2** `MockProvider` + `get_provider` registry (mock fallback when no key).
+- [x] **AI-3** Settings (`AI_PROVIDER`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, model/limits)
+      with defaults + `backend/.env.example`. Seam noted for a future encrypted UI-managed key.
+- [x] **AI-4** Auth-gated `POST /ai/chat` (mock-backed, `conversation_id` in the contract).
+- [x] **AI-5** `AnthropicProvider` (Claude; default `claude-sonnet-4-6`), lazy-imported SDK.
+- [x] **AI-6** SSE streaming `POST /ai/chat/stream`.
+- [x] **AI-7** `OpenAIProvider` (lazy-imported; model id marked verify).
+- [x] **AI-8** Token/usage accounting + minimal logging (never keys/content).
+- [x] **AI-9** Conversation/Message persistence: models + crud + migration + `/ai/conversations`
+      endpoints (ownership-scoped); chat/stream create & continue threads.
+- [x] **AI-11** Frontend `/chat` page with token-by-token streaming + navbar link.
+- [ ] **AI-10** (optional) Per-user rate limiting (Redis) — deferred.
+- [ ] **AI-KEY** (optional) Encrypted, write-only DB-backed API key manageable from `/admin`
+      (the "UI-managed key later" decision) — deferred; the settings seam is in place.
+
 ## Status log
+- 2026-07-02: Built the AI integration layer (Phase 10, AI-1..AI-9 + AI-11) from the
+  AI_INTEGRATION.md design. Provider-agnostic `core/ai` (LLMProvider + normalized types),
+  network-free MockProvider (default/offline fallback), lazy Anthropic (claude-sonnet-4-6)
+  + OpenAI adapters, auth-gated `POST /ai/chat` + SSE `/ai/chat/stream`, conversation/message
+  persistence (models/crud/migration + `/ai/conversations`), and a streaming `/chat` UI.
+  Keys server-side `.env` only. Verified live: mock chat + SSE via curl and in-browser
+  (token-by-token streaming), persistence + multi-turn continuity + ownership 404s.
+  Backend 64 passed; frontend tsc+lint clean. Deferred (optional): AI-10 Redis rate limiting,
+  AI-KEY encrypted UI-managed key.
 - 2026-06-25: Recovered from power-cut session. Cleared 57 phantom file-mode diffs
   (`core.fileMode=false`). Wrote CLAUDE.md + this plan. Nothing was lost.
 - 2026-06-26: Completed T1–T10. Backend test suite green (6 passed) on a fresh
