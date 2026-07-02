@@ -1,9 +1,8 @@
 """Pydantic v2 request/response schemas for the AI endpoints.
 
-Both the request and the response carry a nullable ``conversation_id`` now, even
-though persistence isn't built in this phase — a later task (AI-9) will populate
-it. Here it is accepted-and-ignored on the request and always ``null`` on the
-response, which keeps the wire contract stable for the frontend.
+Both the request and the response carry a ``conversation_id``. On the request it
+is optional: supply it to continue an existing conversation, omit it to start a
+new one. On the response it is the real, persisted conversation id (AI-9).
 """
 from __future__ import annotations
 
@@ -20,7 +19,7 @@ class ChatRequest(BaseModel):
     max_tokens: Optional[int] = None
     temperature: Optional[float] = None
     system: Optional[str] = None
-    conversation_id: Optional[int] = None  # accepted-and-ignored until AI-9
+    conversation_id: Optional[int] = None  # continue an existing conversation, or None
 
 
 class ChatResponseOut(BaseModel):
@@ -29,4 +28,4 @@ class ChatResponseOut(BaseModel):
     provider: str
     usage: TokenUsage
     stop_reason: Optional[str] = None
-    conversation_id: Optional[int] = None  # always null until AI-9
+    conversation_id: Optional[int] = None  # persisted conversation id (AI-9)

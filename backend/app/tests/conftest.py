@@ -9,6 +9,7 @@ from sqlalchemy.pool import StaticPool
 
 import app.models.user  # noqa: F401  register models on Base.metadata
 import app.models.app_setting  # noqa: F401  register models on Base.metadata
+import app.models.conversation  # noqa: F401  register models on Base.metadata
 from app.db.base_class import Base
 from app.db.session import get_db
 from app.main import app

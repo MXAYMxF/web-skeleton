@@ -109,7 +109,8 @@ def test_chat_returns_response_out(client):
     assert body["usage"]["input_tokens"] >= 0
     assert body["usage"]["output_tokens"] >= 0
     assert body["stop_reason"] == "end_turn"
-    assert body["conversation_id"] is None
+    # AI-9: a chat with no conversation_id now creates and returns a real one.
+    assert isinstance(body["conversation_id"], int)
 
 
 def test_chat_rejects_empty_messages(client):
