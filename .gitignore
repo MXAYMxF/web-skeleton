@@ -74,3 +74,6 @@ logs/
 # Misc
 .DS_Store
 *.pem
+
+# bare-bones ai kernel (its own git repo)
+/barebones/
