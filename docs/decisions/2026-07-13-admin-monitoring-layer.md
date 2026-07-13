@@ -12,13 +12,22 @@ the current skeleton:
 
 - FastAPI's `/docs` page (Swagger) is only a catalog of endpoints. It shows what
   the API *can do*, not what is *in* it, and nothing about live activity.
-- The skeleton has admin **endpoints** (`backend/app/api/v1/admin.py`: list /
-  create / edit / delete users, superuser-gated) but **no admin UI** uses them.
 - FastAPI ships **no management page at all**. That is by design — it is a lean
   API toolkit. Django is the Python framework that bundles one.
 
-Conclusion that triggered this record: the point of a skeleton is to not keep
-building basics endlessly. An ops/monitoring layer is a basic. It is missing.
+**CORRECTION (same evening):** during the session Claude claimed the skeleton
+had "no admin UI" — that was **wrong**. The skeleton already has a full custom
+admin page at **`http://localhost:3000/admin`** (built Phase 8, T19–T22):
+users table with search, activate/deactivate, promote/demote superuser,
+delete, wired to the superuser-gated endpoints in
+`backend/app/api/v1/admin.py`. Log in as a superuser and it appears.
+So "user management UI" is NOT missing. What is genuinely missing is only the
+**live-monitoring** part: who is connected *right now*.
+
+Conclusion that triggered this record (written before the correction): the
+point of a skeleton is to not keep building basics endlessly. An
+ops/monitoring layer is a basic. The missing basic is smaller than it first
+appeared — presence/last-seen, not admin tooling.
 
 ## What "monitor who's connected" actually requires (any stack)
 
@@ -45,7 +54,7 @@ option 1 is one middleware + one column away — in *any* framework.
 | **Django** | Built-in admin UI: browse/edit every table (users, sessions) with zero UI code. Mature, reliable, batteries included. | Not live presence — it shows database rows. "Who's online" still needs the last-seen pattern above (well-trodden in Django: `django-online-users` etc.). Rebuild cost: full backend rewrite; frontend (Next.js) could stay. |
 | **Apache APISIX** | An API **gateway**, not a framework — sits *in front of* a backend. Gives traffic dashboards, rate limiting, routing, per-consumer metrics. | Does not replace FastAPI/Django — you still need an app behind it. Knows about requests/consumers, not app users being "online". Heavier ops footprint (etcd, dashboard service). |
 | **SQLAdmin on current FastAPI** | Django-style data admin mounted at `/admin` in ~half an hour: tables, search, edit/delete, generated from existing SQLAlchemy models. | A data manager, not a live monitor. Judged today as "keep building endlessly" territory; also an added dependency to trust. |
-| **Custom Next.js admin page** | Exact UI wanted, uses admin endpoints that already exist. | Most build effort; same objection as above. |
+| **Custom Next.js admin page** | **Already built** — `/admin` in the frontend (see correction above). Adding a "last seen / online" column to it is a small increment, not a rebuild. | Doesn't yet show connection/presence info — that's the actual gap. |
 | **Other batteries-included options** (not yet evaluated) | e.g. Supabase / PocketBase-style backends with built-in dashboards, or Flask + flask-admin. | Each trades away some of the current stack's typing/structure. Evaluate only if Django disappoints. |
 
 ## Honest framing of the trade
@@ -73,11 +82,16 @@ have both paths call the same provisioning with the same flags.
 
 ## Next steps (after computer restart + updates)
 
-1. Decide the frame: is "who's connected" needed as **live presence** or is
+1. **First: look at the existing admin page** — `http://localhost:3000/admin`,
+   logged in as a superuser (seeded demo superuser: `admin@example.com` /
+   `S3curePw!`, or promote via the dev token). Judge the framework question
+   only after seeing what's already there.
+2. Decide the frame: is "who's connected" needed as **live presence** or is
    **last-seen within N minutes** enough? (This decides how much any framework
    helps.)
-2. Trial run: spin up a minimal Django project, register the User model in its
-   admin, judge the management page against the actual need.
-3. If Django wins: new decision record, plan what ports over from this repo.
-4. If FastAPI stays: fix the dev-login asymmetry, then pick SQLAdmin vs custom
-   page *once*, deliberately — not endlessly.
+3. If last-seen is enough: the increment on the current stack is small — a
+   `last_seen` column + one middleware + an "Online/last seen" column on the
+   existing `/admin` table. No new framework needed for that.
+4. If still comparing: trial a minimal Django project, register the User model
+   in its admin, judge honestly against what `/admin` already does.
+5. If FastAPI stays: fix the dev-login asymmetry (see above).
